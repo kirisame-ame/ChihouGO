@@ -19,11 +19,12 @@ RUN apt-get update && apt-get install -y \
 # Copy application source and Gunicorn configuration
 COPY backend /app/backend
 COPY gunicorn /app/gunicorn
-
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose necessary ports
 EXPOSE 80 5001
 
 
 # Start Nginx and Gunicorn together
-CMD gunicorn --config gunicorn/gunicorn_config.py backend.app:app
+CMD service nginx start && \
+    gunicorn --config gunicorn/gunicorn_config.py backend.app:app
