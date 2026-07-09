@@ -28,6 +28,6 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY public/ /usr/share/nginx/html/
 
 # Expose port
-EXPOSE 80
+EXPOSE 5101
 
 CMD ["nginx", "-g", "daemon off;"]
