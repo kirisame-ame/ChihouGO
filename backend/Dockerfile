@@ -14,4 +14,4 @@ EXPOSE 5001
 
 # Run with gunicorn in production
 ENV FLASK_ENV=production
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--chdir", "/app", "app:app"]

@@ -6,8 +6,6 @@ services:
     container_name: chihougo-backend
     ports:
       - "5001:5001"
-    volumes:
-      - ./backend:/app
     environment:
       - FLASK_ENV=production
     restart: unless-stopped
