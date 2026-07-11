@@ -7,20 +7,26 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the word dataset
-df = pd.read_csv('words/dataset.csv')
+df = pd.read_csv("words/dataset.csv")
 
-@app.route('/random', methods=['GET'])
+
+@app.route("/random", methods=["GET"])
 def get_random_place():
     place = df.sample(1).iloc[0]
-    return jsonify({
-        "kanji": place["name_kanji"],
-        "latitude": place["latitude"],
-        "longitude": place["longitude"],
-        "hiragana": place["name_kana"],
-        "romaji": place["name_romaji"]
-    })
+    return jsonify(
+        {
+            "kanji": place["name_kanji_base"],
+            "admLevel": place["suffix_stripped"],
+            "latitude": place["latitude"],
+            "longitude": place["longitude"],
+            "hiragana": place["name_kana_base"],
+            "romaji": place["name_romaji_base"],
+            "admLevelKana": place["suffix_kana"],
+        }
+    )
 
-@app.route('/guess', methods=['POST'])
+
+@app.route("/guess", methods=["POST"])
 def guess():
     data = request.json
     kanji = data.get("kanji")
@@ -30,21 +36,26 @@ def guess():
     if not kanji or not guess:
         return jsonify({"error": "Invalid request"}), 400
 
-    place = df[df["name_kanji"] == kanji]
+    place = df[df["name_kanji_base"] == kanji]
 
     if place.empty:
         return jsonify({"error": "Kanji not found"}), 404
 
-    correct_readings = {place["name_kana"].values[0], place["name_romaji"].values[0]}
+    correct_readings = {
+        place["name_kana_base"].values[0],
+        place["name_romaji_base"].values[0],
+    }
 
     if guess in correct_readings:
         return jsonify({"result": "correct"})
     else:
         return jsonify({"result": "incorrect"})
 
-@app.route('/health', methods=['GET'])
+
+@app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy"})
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001, debug=True)

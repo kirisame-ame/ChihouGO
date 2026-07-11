@@ -63,7 +63,7 @@ export function useGame() {
   }, [state, loadNewQuestion]);
 
   const giveUp = useCallback(() => {
-    setState(prev => ({ ...prev, showNext: true }));
+    setState(prev => ({ ...prev, showNext: true, lastResult: null }));
   }, []);
 
   const nextQuestion = useCallback(() => {

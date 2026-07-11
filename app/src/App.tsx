@@ -96,16 +96,29 @@ function App() {
                 <p className="font-bold text-neutral-100">
                     {t.score} {game.score}
                 </p>
-                <p className="text-3xl">
-                    {game.isLoading ? t.loading : game.currentPlace?.kanji}
-                </p>
+                <div className="flex items-center">
+                    <p className="text-3xl">
+                        {game.isLoading ? t.loading : game.currentPlace?.kanji}
+                    </p>
+                    <ruby className="ml-3 text-2xl mb-2">
+                        {game.isLoading
+                            ? t.loading
+                            : game.currentPlace?.admLevel}
+                        <rt>
+                            {game.isLoading
+                                ? t.loading
+                                : game.currentPlace?.admLevelKana}
+                        </rt>
+                    </ruby>
+                </div>
+
                 <div className="flex min-h-8">
                     <p className="font-bold">
                         {game.lastResult === "correct" && `✅ ${t.correct}`}
                         {game.lastResult === "incorrect" && `❌ ${t.wrong}`}
                         {game.showNext &&
                             game.currentPlace &&
-                            `${game.currentPlace.hiragana} - ${game.currentPlace.romaji}`}
+                            `${t.answer} ${game.currentPlace.hiragana} - ${game.currentPlace.romaji}`}
                     </p>
                 </div>
             </div>
