@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { useGame } from "./hooks/useGame";
 import { translations, type Language } from "./types/translations";
+import { DrawingQuiz } from "./components/DrawingQuiz";
 import usFlag from "./assets/img/us.png";
 import jpFlag from "./assets/img/jp.png";
 
@@ -9,10 +10,14 @@ function MapUpdater({ lat, lng }: { lat: number; lng: number }) {
     const map = useMap();
 
     useEffect(() => {
-        map.setView([lat, lng], 10);
+        map.panTo([lat, lng]);
     }, [map, lat, lng]);
 
     return <Marker position={[lat, lng]} />;
+}
+
+function getModeFromPath(): "map" | "draw" {
+    return window.location.pathname === "/draw" ? "draw" : "map";
 }
 
 function App() {
@@ -21,6 +26,7 @@ function App() {
             navigator.language || (navigator as any).userLanguage || "en";
         return lang.startsWith("ja") ? "ja" : "en";
     });
+    const [mode, setMode] = useState<"map" | "draw">(getModeFromPath);
 
     const t = translations[language];
     const game = useGame();
@@ -28,6 +34,24 @@ function App() {
     useEffect(() => {
         game.loadNewQuestion();
     }, []);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            setMode(getModeFromPath());
+            game.loadNewQuestion();
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [game.loadNewQuestion]);
+
+    const switchMode = (nextMode: "map" | "draw") => {
+        if (nextMode === mode) return;
+
+        window.history.pushState({}, "", nextMode === "draw" ? "/draw" : "/");
+        setMode(nextMode);
+        game.loadNewQuestion();
+    };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
@@ -59,7 +83,7 @@ function App() {
                 {t.devBy}{" "}
                 <a
                     className="text-cyan-400 hover:underline"
-                    href="https://github.com/kirisame-ame"
+                    href="https://github.com/kirisame-ame/ChihouGO"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -96,34 +120,88 @@ function App() {
                 <p className="font-bold text-neutral-100">
                     {t.score} {game.score}
                 </p>
-                <div className="flex items-center">
-                    <p className="text-3xl">
-                        {game.isLoading ? t.loading : game.currentPlace?.kanji}
-                    </p>
-                    <ruby className="ml-3 text-2xl mb-2">
-                        {game.isLoading
-                            ? t.loading
-                            : game.currentPlace?.admLevel}
-                        <rt>
+                {mode === "map" ? (
+                    <div className="flex items-center">
+                        <p className="text-3xl">
                             {game.isLoading
                                 ? t.loading
-                                : game.currentPlace?.admLevelKana}
-                        </rt>
-                    </ruby>
-                </div>
+                                : game.currentPlace?.kanji}
+                        </p>
+                        <ruby className="ml-3 text-2xl mb-2">
+                            {game.isLoading
+                                ? t.loading
+                                : game.currentPlace?.admLevel}
+                            <rt>
+                                {game.isLoading
+                                    ? t.loading
+                                    : game.currentPlace?.admLevelKana}
+                            </rt>
+                        </ruby>
+                    </div>
+                ) : (
+                    <div className="justify-center text-center">
+                        <p className="text-sm text-neutral-400">
+                            {t.drawPrompt}
+                        </p>
+                        <div className="flex items-center justify-center">
+                            <p className="text-3xl">
+                                {game.isLoading
+                                    ? t.loading
+                                    : game.currentPlace?.hiragana}
+                            </p>
+                            <ruby className="ml-3 text-2xl mb-2">
+                                {game.isLoading
+                                    ? t.loading
+                                    : game.currentPlace?.admLevel}
+                                <rt>
+                                    {game.isLoading
+                                        ? t.loading
+                                        : game.currentPlace?.admLevelKana}
+                                </rt>
+                            </ruby>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex min-h-8">
-                    <p className="font-bold">
+                    <p className=" text-xl">
                         {game.lastResult === "correct" && `✅ ${t.correct}`}
                         {game.lastResult === "incorrect" && `❌ ${t.wrong}`}
+                    </p>
+                    <h3 className="text-3xl">
                         {game.showNext &&
                             game.currentPlace &&
-                            `${t.answer} ${game.currentPlace.hiragana} - ${game.currentPlace.romaji}`}
-                    </p>
+                            (mode === "draw"
+                                ? `${t.answer} ${game.currentPlace.kanji}`
+                                : `${t.answer} ${game.currentPlace.hiragana} - ${game.currentPlace.romaji}`)}
+                    </h3>
                 </div>
             </div>
 
-            {game.currentPlace && (
+            <div className="flex justify-center gap-2 mt-4">
+                <button
+                    className={`px-3 py-1 rounded ${
+                        mode === "map"
+                            ? "bg-cyan-600"
+                            : "bg-neutral-700 hover:bg-neutral-600"
+                    }`}
+                    onClick={() => switchMode("map")}
+                >
+                    {t.mapMode}
+                </button>
+                <button
+                    className={`px-3 py-1 rounded ${
+                        mode === "draw"
+                            ? "bg-cyan-600"
+                            : "bg-neutral-700 hover:bg-neutral-600"
+                    }`}
+                    onClick={() => switchMode("draw")}
+                >
+                    {t.drawMode}
+                </button>
+            </div>
+
+            {mode === "map" && game.currentPlace && (
                 <MapContainer
                     className="w-full h-72 mb-3 border border-neutral-700 rounded-xl"
                     center={[
@@ -144,6 +222,38 @@ function App() {
                 </MapContainer>
             )}
 
+            {mode === "draw" && game.currentPlace && (
+                <>
+                    <MapContainer
+                        className="w-full h-72 mb-3 border border-neutral-700 rounded-xl"
+                        center={[
+                            game.currentPlace.latitude,
+                            game.currentPlace.longitude,
+                        ]}
+                        zoom={6}
+                        scrollWheelZoom={false}
+                    >
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
+                        />
+                        <MapUpdater
+                            lat={game.currentPlace.latitude}
+                            lng={game.currentPlace.longitude}
+                        />
+                    </MapContainer>
+                    {!game.showNext && game.lastResult !== "correct" && (
+                        <DrawingQuiz
+                            questionKey={`${game.currentPlace.latitude}-${game.currentPlace.longitude}-${game.currentPlace.kanji}`}
+                            isDisabled={game.isLoading}
+                            onCheck={game.submitKanjiGuess}
+                            onGiveUp={game.giveUp}
+                            labels={t}
+                        />
+                    )}
+                </>
+            )}
+
             {game.showNext && (
                 <div className="flex justify-center">
                     <button
@@ -155,7 +265,7 @@ function App() {
                 </div>
             )}
 
-            {!game.showNext && (
+            {!game.showNext && mode === "map" && (
                 <form
                     onSubmit={handleGuess}
                     className="flex gap-2 justify-center items-center"
@@ -185,8 +295,12 @@ function App() {
                 </form>
             )}
 
-            <p className="text-neutral-400 mt-2">{t.hiraganaRomaji}</p>
-            <p className="text-xs text-neutral-500">{t.hepburnNote}</p>
+            {mode === "map" && (
+                <>
+                    <p className="text-neutral-400 mt-2">{t.hiraganaRomaji}</p>
+                    <p className="text-xs text-neutral-500">{t.hepburnNote}</p>
+                </>
+            )}
         </div>
     );
 }

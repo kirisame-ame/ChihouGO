@@ -19,6 +19,10 @@ export default defineConfig({
         target: "http://localhost:5001",
         changeOrigin: true,
       },
+      "/guess-kanji": {
+        target: "http://localhost:5001",
+        changeOrigin: true,
+      },
       "/img": {
         target: "http://localhost:5001",
         changeOrigin: true,

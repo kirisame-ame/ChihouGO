@@ -52,6 +52,24 @@ def guess():
         return jsonify({"result": "incorrect"})
 
 
+@app.route("/guess-kanji", methods=["POST"])
+def guess_kanji():
+    data = request.json
+    kana = data.get("kana")
+    guess = data.get("guess")
+
+    if not kana or not guess:
+        return jsonify({"error": "Invalid request"}), 400
+
+    place = df[df["name_kana_base"] == kana]
+    if place.empty:
+        return jsonify({"error": "Kana not found"}), 404
+
+    if guess == place["name_kanji_base"].values[0]:
+        return jsonify({"result": "correct"})
+    return jsonify({"result": "incorrect"})
+
+
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy"})

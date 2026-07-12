@@ -62,6 +62,29 @@ export function useGame() {
     }
   }, [state, loadNewQuestion]);
 
+  const submitKanjiGuess = useCallback(async (guess: string) => {
+    const { currentPlace } = state;
+    if (!currentPlace) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/guess-kanji`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kana: currentPlace.hiragana, guess }),
+      });
+      const result = await response.json();
+
+      if (result.result === 'correct') {
+        setState(prev => ({ ...prev, score: prev.score + 1, lastResult: 'correct' as const }));
+        setTimeout(() => loadNewQuestion(), 2000);
+      } else {
+        setState(prev => ({ ...prev, lastResult: 'incorrect' as const }));
+      }
+    } catch (error) {
+      console.error('Failed to submit kanji guess:', error);
+    }
+  }, [state, loadNewQuestion]);
+
   const giveUp = useCallback(() => {
     setState(prev => ({ ...prev, showNext: true, lastResult: null }));
   }, []);
@@ -78,6 +101,7 @@ export function useGame() {
     ...state,
     loadNewQuestion,
     submitGuess,
+    submitKanjiGuess,
     giveUp,
     nextQuestion,
     clearResult,

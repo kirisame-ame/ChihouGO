@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    title: "ChihouGO : Place Kanji Reading Game!",
+    title: "ChihouGO : Place Kanji Game!",
     guess: "Enter your guess",
     correct: "Correct!",
     wrong: "Wrong guess, try again!",
@@ -13,9 +13,23 @@ export const translations = {
     devBy: "by",
     hepburnNote: "※Hepburn Romaji e.g. とうきょう -> toukyou",
     hiraganaRomaji: "ひらがな / Romaji",
+    mapMode: "Map Mode",
+    drawMode: "Draw Mode",
+    drawPrompt: "Draw the kanji for",
+    drawInstructions:
+      "Add a box for each kanji character, then choose each drawing result.",
+    addBox: "Add box",
+    character: "Character",
+    clear: "Clear",
+    remove: "Remove",
+    loadingClassifier: "Loading classifier...",
+    classifierError: "Classifier error",
+    recognizeDrawings: "Recognize drawings",
+    recognizing: "Recognizing...",
+    checkDrawingAnswer: "Check answer",
   },
   ja: {
-    title: "地方GO：地名漢字の読み方クイズ！",
+    title: "地方GO：地名漢字の色んなクイズ！",
     guess: "答えを入力してください",
     correct: "正解！",
     wrong: "間違った答えです。もう一度試してください！",
@@ -28,6 +42,20 @@ export const translations = {
     devBy: "作者",
     hepburnNote: "※ヘボン式ローマ字 例: とうきょう -> toukyou",
     hiraganaRomaji: "ひらがな / ローマ字",
+    mapMode: "地図モード",
+    drawMode: "書き取りモード",
+    drawPrompt: "次の地名を漢字で書いてください",
+    drawInstructions:
+      "漢字一文字につき一つの枠を追加し、各文字の候補を選んでください。",
+    addBox: "枠を追加",
+    character: "文字",
+    clear: "消去",
+    remove: "削除",
+    loadingClassifier: "文字認識モデルを読み込み中...",
+    classifierError: "文字認識エラー",
+    recognizeDrawings: "文字を認識",
+    recognizing: "認識中...",
+    checkDrawingAnswer: "答えを確認",
   },
 } as const;
 

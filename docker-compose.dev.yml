@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: chihougo-backend-dev
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/app
+    profiles:
+      - dev
+
+networks:
+  default:
+    name: chihougo-network
