@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { useGame } from "./hooks/useGame";
 import { translations, type Language } from "./types/translations";
@@ -27,6 +27,7 @@ function App() {
         return lang.startsWith("ja") ? "ja" : "en";
     });
     const [mode, setMode] = useState<"map" | "draw">(getModeFromPath);
+    const guessInputRef = useRef<HTMLInputElement>(null);
 
     const t = translations[language];
     const game = useGame();
@@ -44,6 +45,12 @@ function App() {
         window.addEventListener("popstate", handlePopState);
         return () => window.removeEventListener("popstate", handlePopState);
     }, [game.loadNewQuestion]);
+
+    useEffect(() => {
+        if (mode === "map" && !game.isLoading) {
+            guessInputRef.current?.focus();
+        }
+    }, [mode, game.currentPlace, game.isLoading]);
 
     const switchMode = (nextMode: "map" | "draw") => {
         if (nextMode === mode) return;
@@ -73,11 +80,12 @@ function App() {
         if (guess.trim()) {
             game.submitGuess(guess);
             e.currentTarget.reset();
+            guessInputRef.current?.focus();
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-5 border border-neutral-700 rounded-xl bg-neutral-900 my-10">
+        <div className="max-w-2xl mx-auto min-h-screen p-5    bg-neutral-900 ">
             <h1 className="text-3xl inline">{t.title}</h1>
             <p className="text-neutral-400 mb-2">
                 {t.devBy}{" "}
@@ -278,6 +286,7 @@ function App() {
                         {t.giveup}
                     </button>
                     <input
+                        ref={guessInputRef}
                         type="text"
                         className="h-8 w-36 px-2 bg-neutral-800 border border-neutral-600 text-neutral-100 rounded"
                         name="guess"
