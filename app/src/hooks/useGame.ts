@@ -12,10 +12,10 @@ export function useGame() {
     isLoading: true,
   });
 
-  const loadNewQuestion = useCallback(async () => {
+  const loadNewQuestion = useCallback(async (mode: 'reading' | 'draw' = 'reading') => {
     try {
       setState(prev => ({ ...prev, isLoading: true, lastResult: null, showNext: false }));
-      const response = await fetch(`${API_BASE}/random`);
+      const response = await fetch(`${API_BASE}/random?mode=${mode}`);
       const data: Place = await response.json();
       setState(prev => ({
         ...prev,
@@ -37,7 +37,7 @@ export function useGame() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          kanji: currentPlace.kanji,
+          questionId: currentPlace.questionId,
           guess: guess,
         }),
       });
@@ -52,7 +52,7 @@ export function useGame() {
 
         // Auto-advance after 2 seconds
         setTimeout(() => {
-          loadNewQuestion();
+          loadNewQuestion('reading');
         }, 2000);
       } else {
         setState(prev => ({ ...prev, lastResult: 'incorrect' as const }));
@@ -70,13 +70,17 @@ export function useGame() {
       const response = await fetch(`${API_BASE}/guess-kanji`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kana: currentPlace.hiragana, guess }),
+        body: JSON.stringify({
+          questionId: currentPlace.questionId,
+          kana: currentPlace.hiragana,
+          guess,
+        }),
       });
       const result = await response.json();
 
       if (result.result === 'correct') {
         setState(prev => ({ ...prev, score: prev.score + 1, lastResult: 'correct' as const }));
-        setTimeout(() => loadNewQuestion(), 2000);
+        setTimeout(() => loadNewQuestion('draw'), 2000);
       } else {
         setState(prev => ({ ...prev, lastResult: 'incorrect' as const }));
       }
@@ -85,12 +89,33 @@ export function useGame() {
     }
   }, [state, loadNewQuestion]);
 
-  const giveUp = useCallback(() => {
-    setState(prev => ({ ...prev, showNext: true, lastResult: null }));
-  }, []);
+  const giveUp = useCallback(async () => {
+    const { currentPlace } = state;
+    if (!currentPlace) return;
 
-  const nextQuestion = useCallback(() => {
-    loadNewQuestion();
+    try {
+      const response = await fetch(`${API_BASE}/giveup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId: currentPlace.questionId }),
+      });
+      const answer = await response.json();
+
+      if (!response.ok) throw new Error(answer.error || 'Failed to give up');
+
+      setState(prev => ({
+        ...prev,
+        currentPlace: { ...prev.currentPlace!, ...answer },
+        showNext: true,
+        lastResult: null,
+      }));
+    } catch (error) {
+      console.error('Failed to reveal answer:', error);
+    }
+  }, [state]);
+
+  const nextQuestion = useCallback((mode: 'reading' | 'draw' = 'reading') => {
+    loadNewQuestion(mode);
   }, [loadNewQuestion]);
 
   const clearResult = useCallback(() => {

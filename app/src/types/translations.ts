@@ -13,7 +13,7 @@ export const translations = {
     devBy: "by",
     hepburnNote: "※Hepburn Romaji e.g. とうきょう -> toukyou",
     hiraganaRomaji: "ひらがな / Romaji",
-    mapMode: "Map Mode",
+    readingMode: "Reading Mode",
     drawMode: "Draw Mode",
     drawPrompt: "Draw the kanji for",
     drawInstructions:
@@ -42,7 +42,7 @@ export const translations = {
     devBy: "作者",
     hepburnNote: "※ヘボン式ローマ字 例: とうきょう -> toukyou",
     hiraganaRomaji: "ひらがな / ローマ字",
-    mapMode: "地図モード",
+    readingMode: "読み方モード",
     drawMode: "書き取りモード",
     drawPrompt: "次の地名を漢字で書いてください",
     drawInstructions:

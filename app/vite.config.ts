@@ -23,6 +23,10 @@ export default defineConfig({
         target: "http://localhost:5001",
         changeOrigin: true,
       },
+      "/giveup": {
+        target: "http://localhost:5001",
+        changeOrigin: true,
+      },
       "/img": {
         target: "http://localhost:5001",
         changeOrigin: true,

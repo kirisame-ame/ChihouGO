@@ -16,8 +16,8 @@ function MapUpdater({ lat, lng }: { lat: number; lng: number }) {
     return <Marker position={[lat, lng]} />;
 }
 
-function getModeFromPath(): "map" | "draw" {
-    return window.location.pathname === "/draw" ? "draw" : "map";
+function getModeFromPath(): "reading" | "draw" {
+    return window.location.pathname === "/draw" ? "draw" : "reading";
 }
 
 function App() {
@@ -26,38 +26,37 @@ function App() {
             navigator.language || (navigator as any).userLanguage || "en";
         return lang.startsWith("ja") ? "ja" : "en";
     });
-    const [mode, setMode] = useState<"map" | "draw">(getModeFromPath);
+    const [mode, setMode] = useState<"reading" | "draw">(getModeFromPath);
     const guessInputRef = useRef<HTMLInputElement>(null);
 
     const t = translations[language];
     const game = useGame();
+    const { loadNewQuestion } = game;
 
     useEffect(() => {
-        game.loadNewQuestion();
-    }, []);
+        loadNewQuestion(mode);
+    }, [loadNewQuestion, mode]);
 
     useEffect(() => {
         const handlePopState = () => {
             setMode(getModeFromPath());
-            game.loadNewQuestion();
         };
 
         window.addEventListener("popstate", handlePopState);
         return () => window.removeEventListener("popstate", handlePopState);
-    }, [game.loadNewQuestion]);
+    }, []);
 
     useEffect(() => {
-        if (mode === "map" && !game.isLoading) {
+        if (mode === "reading" && !game.isLoading) {
             guessInputRef.current?.focus();
         }
     }, [mode, game.currentPlace, game.isLoading]);
 
-    const switchMode = (nextMode: "map" | "draw") => {
+    const switchMode = (nextMode: "reading" | "draw") => {
         if (nextMode === mode) return;
 
-        window.history.pushState({}, "", nextMode === "draw" ? "/draw" : "/");
+        window.history.pushState({}, "", nextMode === "draw" ? "/draw" : "/reading");
         setMode(nextMode);
-        game.loadNewQuestion();
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -128,7 +127,7 @@ function App() {
                 <p className="font-bold text-neutral-100">
                     {t.score} {game.score}
                 </p>
-                {mode === "map" ? (
+                {mode === "reading" ? (
                     <div className="flex items-center">
                         <p className="text-3xl">
                             {game.isLoading
@@ -189,13 +188,13 @@ function App() {
             <div className="flex justify-center gap-2 mt-4">
                 <button
                     className={`px-3 py-1 rounded ${
-                        mode === "map"
+                        mode === "reading"
                             ? "bg-cyan-600"
                             : "bg-neutral-700 hover:bg-neutral-600"
                     }`}
-                    onClick={() => switchMode("map")}
+                    onClick={() => switchMode("reading")}
                 >
-                    {t.mapMode}
+                    {t.readingMode}
                 </button>
                 <button
                     className={`px-3 py-1 rounded ${
@@ -209,7 +208,7 @@ function App() {
                 </button>
             </div>
 
-            {mode === "map" && game.currentPlace && (
+            {mode === "reading" && game.currentPlace && (
                 <MapContainer
                     className="w-full h-72 mb-3 border border-neutral-700 rounded-xl"
                     center={[
@@ -252,7 +251,7 @@ function App() {
                     </MapContainer>
                     {!game.showNext && game.lastResult !== "correct" && (
                         <DrawingQuiz
-                            questionKey={`${game.currentPlace.latitude}-${game.currentPlace.longitude}-${game.currentPlace.kanji}`}
+                            questionKey={game.currentPlace.questionId}
                             isDisabled={game.isLoading}
                             onCheck={game.submitKanjiGuess}
                             onGiveUp={game.giveUp}
@@ -266,14 +265,14 @@ function App() {
                 <div className="flex justify-center">
                     <button
                         className="justify-center rounded-lg bg-neutral-800 border border-neutral-600 px-4 h-8 font-bold text-neutral-100 hover:bg-neutral-700 cursor-pointer"
-                        onClick={game.nextQuestion}
+                        onClick={() => game.nextQuestion(mode)}
                     >
                         {t.next}
                     </button>
                 </div>
             )}
 
-            {!game.showNext && mode === "map" && (
+            {!game.showNext && mode === "reading" && (
                 <form
                     onSubmit={handleGuess}
                     className="flex gap-2 justify-center items-center"
@@ -304,7 +303,7 @@ function App() {
                 </form>
             )}
 
-            {mode === "map" && (
+            {mode === "reading" && (
                 <>
                     <p className="text-neutral-400 mt-2">{t.hiraganaRomaji}</p>
                     <p className="text-xs text-neutral-500">{t.hepburnNote}</p>

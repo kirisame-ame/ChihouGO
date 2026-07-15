@@ -1,10 +1,11 @@
 export interface Place {
-  kanji: string;
+  questionId: string;
+  kanji?: string;
   admLevel: string;
   latitude: number;
   longitude: number;
-  hiragana: string;
-  romaji: string;
+  hiragana?: string;
+  romaji?: string;
   admLevelKana: string;
 }
 
